@@ -724,14 +724,41 @@ default_symbol_name_matcher (const char *symbol_search_name,
     return false;
 }
 
+/* A name matcher that matches the symbol name exactly, with
+   strcmp.  */
+
+static bool
+literal_symbol_name_matcher (const char *symbol_search_name,
+			     const lookup_name_info &lookup_name,
+			     completion_match_result *comp_match_res)
+{
+  const std::string &name = lookup_name.name ();
+
+  int cmp = (lookup_name.completion_mode ()
+	     ? strncmp (symbol_search_name, name.c_str (), name.size ())
+	     : strcmp (symbol_search_name, name.c_str ()));
+  if (cmp == 0)
+    {
+      if (comp_match_res != NULL)
+	comp_match_res->set_match (symbol_search_name);
+      return true;
+    }
+  else
+    return false;
+}
+
 /* See language.h.  */
 
 symbol_name_matcher_ftype *
 language_get_symbol_name_matcher (const language_defn *lang,
 				  const lookup_name_info &lookup_name)
 {
+  if (lookup_name.match_type () == symbol_name_match_type::LITERAL)
+    return literal_symbol_name_matcher;
+
   if (lang->la_get_symbol_name_matcher != nullptr)
     return lang->la_get_symbol_name_matcher (lookup_name);
+
   return default_symbol_name_matcher;
 }
 
