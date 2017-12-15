@@ -1775,14 +1775,18 @@ demangle_for_lookup_info::demangle_for_lookup_info
 
       if (without_params != NULL)
 	{
-	  m_demangled_name = demangle_for_lookup (without_params.get (),
-						  lang, storage);
+	  if (lookup_name.match_type () != symbol_name_match_type::LITERAL)
+	    m_demangled_name = demangle_for_lookup (without_params.get (),
+						    lang, storage);
 	  return;
 	}
     }
 
-  m_demangled_name = demangle_for_lookup (lookup_name.name ().c_str (),
-					  lang, storage);
+  if (lookup_name.match_type () == symbol_name_match_type::LITERAL)
+    m_demangled_name = lookup_name.name ();
+  else
+    m_demangled_name = demangle_for_lookup (lookup_name.name ().c_str (),
+					    lang, storage);
 }
 
 /* See symtab.h.  */
